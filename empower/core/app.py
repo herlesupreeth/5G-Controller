@@ -48,8 +48,9 @@ class EmpowerAppHomeHandler(BaseHandler):
     """
 
     def get(self):
-
-        page = "apps/%s/index.html" % self.server.__module__
+        module_name_array = self.server.__module__.split('.')
+        page = "apps/%s/index.html" % module_name_array[len(module_name_array)-1]
+        # page = "apps/%s/index.html" % self.server.__module__
         self.render(page, tenant_id=self.server.tenant_id)
 
 
@@ -65,7 +66,9 @@ class EmpowerApp(object):
         self.log = empower.logger.get_logger()
         self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
 
-        self.ui_url = r"/apps/%s/?" % self.__module__
+        module_name_array = self.__module__.split('.')
+        self.ui_url = r"/apps/%s/?" % module_name_array[len(module_name_array)-1]
+        # self.ui_url = r"/apps/%s/?" % self.__module__
         handler = (self.ui_url, EmpowerAppHomeHandler, dict(server=self))
         rest_server = RUNTIME.components[RESTServer.__module__]
         rest_server.add_handler(handler)
@@ -137,6 +140,14 @@ class EmpowerApp(object):
 
         return RUNTIME.tenants[self.tenant_id].wtps.values()
 
+    def vbsps(self):
+        """Return VBSPs in this tenant."""
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return None
+
+        return RUNTIME.tenants[self.tenant_id].vbsps.values()
+
     def lvaps(self):
         """Return LVAPs in this tenant."""
 
@@ -166,6 +177,17 @@ class EmpowerApp(object):
             return None
 
         return RUNTIME.tenants[self.tenant_id].wtps[addr]
+
+    def vbsp(self, addr):
+        """Return a particular VBSP in this tenant."""
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return None
+
+        if addr not in RUNTIME.tenants[self.tenant_id].vbsps:
+            return None
+
+        return RUNTIME.tenants[self.tenant_id].vbsps[addr]
 
     def cpps(self):
         """Return CPPs in this tenant."""
