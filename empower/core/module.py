@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015, Roberto Riggio
+# Copyright (c) 2015, Roberto Riggio, Supreeth Herle
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,14 @@ from multiprocessing.pool import ThreadPool
 
 import empower.logger
 
+from protobuf_to_dict import protobuf_to_dict
+
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvnfp.lvnfpserver import LVNFPServer
+from empower.vbspp.vbspserver import VBSPServer
 
 from empower.main import RUNTIME
 
@@ -636,3 +639,77 @@ class ModuleLVNFPEventWorker(ModuleEventWorker):
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleEventWorker.__init__(self, LVNFPServer.__module__, module,
                                    pt_type, pt_packet)
+
+
+class ModuleVBSPPEventWorker(ModuleEventWorker):
+    """Module worker (VBSP Protocol Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, VBSPServer.__module__, module, pt_type,
+                              pt_packet)
+
+
+class ModuleVBSPPWorker(ModuleWorker):
+    """Module worker (VBSP Protocol Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, VBSPServer.__module__, module, pt_type,
+                              pt_packet)
+
+    def add_module(self, **kwargs):
+        """ Prevent assgining the same module_id to different modules"""
+
+        from empower.vbspp import RESERVED_MODULE_IDS
+        from empower.vbspp import MAX_MODULE_ID
+
+        no_module_id_flag = 0
+
+        while True:
+            module_id = self.module_id
+
+            if module_id > MAX_MODULE_ID:
+                no_module_id_flag += 1
+                self.module_id = 0 # Reset the module_id
+                module_id = 0
+                if no_module_id_flag > 1:
+                    LOG.info("No module ids left to assign")
+                    return
+
+            if module_id not in RESERVED_MODULE_IDS and module_id not in self.modules:
+                # Decrement is because of the increment and then assginment in super().add_module function
+                self.module_id = module_id - 1
+                break
+
+        return super().add_module(**kwargs)
+
+
+    def handle_packet(self, response):
+        """Handle response message."""
+
+        msg_type = response.WhichOneof("msg")
+        dict_form_msg = protobuf_to_dict(response)
+        id_module = dict_form_msg[msg_type]["header"]["xid"]
+
+        if id_module not in self.modules:
+            return
+
+        module = self.modules[id_module]
+
+        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
+                 id_module)
+
+        module.handle_response(response)
