@@ -25,41 +25,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Virtual Base Station Point."""
+"""(VBSP) User Equipment class."""
 
-from empower.core.pnfdev import BasePNFDev
+from empower.datatypes.etheraddress import EtherAddress
 
 
-class VBSP(BasePNFDev):
-    """A Virtual Base Station Point.
+import empower.logger
+LOG = empower.logger.get_logger()
 
-    Attributes:
-        addr: This PNFDev MAC (Dummy) address (Address constructed from ENB ID, which is got from HELLO messages)
-        label: A human-radable description of this PNFDev (str)
-        connection: Signalling channel connection (BasePNFPMainHandler)
-        last_seen: Sequence number of the last hello message received (int)
-        last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
-        every: update period (in ms)
-        uplink_bytes: signalling channel uplink bytes
-        downlink_bytes: signalling channel downlink bytes
-    """
 
-    ALIAS = "vbsps"
-    SOLO = "vbsp"
+class UE(object):
 
-    def __init__(self, addr, label):
-        super().__init__(addr, label)
+    def __init__(self, rnti, vbsp, config, capabilities):
+
+        self.rnti = rnti
+        self.ue_id = self.convert_hex_rnti_to_ether_address(self.rnti)
+        self.vbsp = vbsp
+        self.config = config
+        self.capabilities = capabilities
+        self.rrc_measurements_config = {}
+        self.rrc_measurements = {}
+        self.PCell_rsrp = None
+        self.PCell_rsrq = None
 
     def to_dict(self):
-        """Return a JSON-serializable dictionary representing the VBSP."""
+        """ Return a JSON-serializable dictionary representing the LVAP """
 
-        out = super().to_dict()
-        del out['feed']
-        del out['uplink_bit_rate']
-        del out['downlink_bit_rate']
-        del out['ports']
-        out['enb_config'] = self.enb_config,
-        out['ues'] = self.ues
-        return out
+        return {'rnti': self.rnti,
+                'vbsp': self.vbsp.addr,
+                'ue_id': self.ue_id,
+                'capabilities': self.capabilities,
+                'rrc_measurements_config': self.rrc_measurements_config
+                }
 
+    def convert_hex_rnti_to_ether_address(self, rnti):
+
+        str_hex_value = format(rnti, 'x')
+        padding = '0' * (12 - len(str_hex_value))
+        mac_string = padding + str_hex_value
+        mac_string_array = [mac_string[i:i+2] for i in range(0, len(mac_string), 2)]
+
+        return EtherAddress(":".join(mac_string_array))
+
+    def __eq__(self, other):
+        if isinstance(other, UE):
+            return self.rnti == other.rnti
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
