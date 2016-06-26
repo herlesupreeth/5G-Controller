@@ -34,8 +34,27 @@ from enum import IntEnum, Enum
 PROGRAN_VERSION = 0
 NUM_MAX_ENB = 2
 NUM_MAX_UE = 2048
+DEFAULT_CONTROLLER_AGENT_IPv4_ADDRESS = "127.0.0.1"
 DEFAULT_PORT = 2210
 
+
+MAC_STATS_TYPE = {}
+
+MAC_STATS_REPORT_FREQ = {}
+
+MAC_CELL_STATS_TYPES = {}
+
+MAC_UE_STATS_TYPES = {}
+
+TIMER_IDS = []
+
+HELLO_MSG_MODULE_ID = 4294967294
+MISC_MSG_MODULE_ID = 4294967295
+
+RESERVED_MODULE_IDS = [HELLO_MSG_MODULE_ID, MISC_MSG_MODULE_ID]
+MAX_MODULE_ID = 4294967295 # Max value of uint32
+
+MAX_NUM_CCs  = 1
 
 class AgentIDT(IntEnum):
 
@@ -110,6 +129,7 @@ PRT_LC_CONFIG_RESPONSE = "lc_config_reply_msg"
 PRT_DL_MAC_CONFIG_MESSAGE = "dl_mac_config_msg"
 PRT_CONTROL_DELEGATION_MESSAGE = "control_delegation_msg"
 PRT_UE_STATE_CHANGE = "ue_state_change_msg"
+PRT_UE_RRC_MEASUREMENTS_RESPONSE = "ue_rrc_measurements_reply_msg"
 
 
 PRT_TYPES = {PRT_VBSP_BYE: None,
@@ -125,15 +145,16 @@ PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_MAC_STATS_RESPONSE: "mac_stats_response",
              PRT_SF_TRIGGER_MESSAGE: None,
              PRT_UL_SR_INFO_MESSAGE: None,
-             PRT_UE_STATE_CHANGE: None,
+             PRT_UE_STATE_CHANGE: "ue_state_change",
              PRT_UE_CONFIG_REQUEST: None,
              PRT_UE_CONFIG_RESPONSE: None,
              PRT_ENB_CONFIG_REQUEST: None,
-             PRT_ENB_CONFIG_RESPONSE: None,
+             PRT_ENB_CONFIG_RESPONSE: "enb_config_reply",
              PRT_LC_CONFIG_REQUEST: None,
              PRT_LC_CONFIG_RESPONSE: None,
              PRT_DL_MAC_CONFIG_MESSAGE: None,
-             PRT_CONTROL_DELEGATION_MESSAGE: None}
+             PRT_CONTROL_DELEGATION_MESSAGE: None,
+             PRT_UE_RRC_MEASUREMENTS_RESPONSE: "ue_rrc_measurements_reply"}
 
 
 PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
@@ -157,4 +178,5 @@ PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
                       PRT_LC_CONFIG_REQUEST: [],
                       PRT_LC_CONFIG_RESPONSE: [],
                       PRT_DL_MAC_CONFIG_MESSAGE: [],
-                      PRT_CONTROL_DELEGATION_MESSAGE: []}
+                      PRT_CONTROL_DELEGATION_MESSAGE: [],
+                      PRT_UE_RRC_MEASUREMENTS_RESPONSE: []}

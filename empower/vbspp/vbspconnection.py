@@ -30,16 +30,27 @@
 import time
 import tornado.ioloop
 from construct import Container
+from time import sleep
 
 import empower.vbspp.messages.progran_pb2 as progran_pb2
 import empower.vbspp.messages.header_pb2 as header_pb2
+import empower.vbspp.messages.stats_messages_pb2 as stats_messages_pb2
+import empower.vbspp.messages.config_common_pb2 as config_common_pb2
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbspp import MESSAGE_SIZE
+from empower.vbspp import PRT_VBSP_HELLO
 from empower.vbspp import PRT_VBSP_BYE
+from empower.vbspp import PRT_UE_STATE_CHANGE
+from empower.vbspp import PRT_UE_RRC_MEASUREMENTS_RESPONSE
 from empower.vbspp import PRT_VBSP_REGISTER
 from empower.vbspp import PROGRAN_VERSION
-
-
+from empower.vbspp import MAC_STATS_TYPE
+from empower.vbspp import MAC_STATS_REPORT_FREQ
+from empower.vbspp import MAC_CELL_STATS_TYPES
+from empower.vbspp import MAC_UE_STATS_TYPES
+from empower.vbspp import TIMER_IDS
+from protobuf_to_dict import protobuf_to_dict
+from empower.core.ue import UE
 from empower.main import RUNTIME
 
 import empower.logger
@@ -68,6 +79,7 @@ class VBSPConnection(object):
         self.vbsp = None
         self.enb_id = None
         self.vbsp_id = None
+        self.xid = None
         self.stream.set_close_callback(self._on_disconnect)
         self.__buffer = b''
         self._hb_interval_ms = 500
@@ -143,11 +155,11 @@ class VBSPConnection(object):
         if self.vbsp:
             self.vbsp.downlink_bytes += 4 + size
 
-    def send_echo_request(self, enb_id, xid=0):
+    def send_echo_request(self, enb_id):
 
         echo_request = progran_pb2.progran_message()
 
-        self.create_header(xid, enb_id, header_pb2.PRPT_ECHO_REQUEST, echo_request.echo_request_msg.header)
+        self.create_header(self.xid, enb_id, header_pb2.PRPT_ECHO_REQUEST, echo_request.echo_request_msg.header)
         echo_request.msg_dir = progran_pb2.INITIATING_MESSAGE
 
         LOG.info("Sending echo request message to VBSP %f", self.vbsp.addr)
@@ -195,11 +207,11 @@ class VBSPConnection(object):
 
             deserialized_msg = self.deserialize_message(line)
 
-            LOG.info("\n\n\n************ START OF REPLY MESSAGE ********************\n\n\n")
+            # LOG.info("\n\n\n************ START OF REPLY MESSAGE ********************\n\n\n")
 
             LOG.info(deserialized_msg.__str__())
 
-            LOG.info("\n\n\n************ END OF REPLY MESSAGE **********************\n\n\n")
+            # LOG.info("\n\n\n************ END OF REPLY MESSAGE **********************\n\n\n")
 
             self._trigger_message(deserialized_msg)
             self._wait()
@@ -213,6 +225,9 @@ class VBSPConnection(object):
             LOG.error("Unknown message type %u", msg_type)
             return
 
+        while msg_type != PRT_VBSP_HELLO and self.vbsp == None:
+            sleep(2)  # Time in seconds.
+
         handler_name = "_handle_%s" % self.server.pt_types[msg_type]
 
         if hasattr(self, handler_name):
@@ -221,7 +236,7 @@ class VBSPConnection(object):
 
         if msg_type in self.server.pt_types_handlers:
             for handler in self.server.pt_types_handlers[msg_type]:
-                handler(msg)
+                handler(deserialized_msg)
 
     def convert_hex_enb_id_to_ether_address(self, enb_id):
 
@@ -231,6 +246,50 @@ class VBSPConnection(object):
         mac_string_array = [mac_string[i:i+2] for i in range(0, len(mac_string), 2)]
 
         return EtherAddress(":".join(mac_string_array))
+
+    def _handle_ue_state_change(self, ue_state):
+
+        ue_state_dict = protobuf_to_dict(ue_state)[PRT_UE_STATE_CHANGE]
+        rnti = ue_state_dict["config"]["rnti"]
+
+        if ue_state_dict["type"] == config_common_pb2.PRUESC_ACTIVATED:
+            if "capabilities" not in ue_state_dict["config"]:
+                capabilities = {}
+            else:
+                capabilities = ue_state_dict["config"]["capabilities"]
+                del ue_state_dict["config"]["capabilities"]
+            del ue_state_dict["config"]["rnti"]
+            self.vbsp.ues[rnti] = UE(rnti, self.vbsp, ue_state_dict["config"], capabilities)
+
+        elif ue_state_dict["type"] == config_common_pb2.PRUESC_DEACTIVATED and rnti in self.vbsp.ues:            
+            del self.vbsp.ues[rnti]
+
+    def _handle_ue_rrc_measurements_reply(self, measurements_response):
+
+        measurements_response_dict = protobuf_to_dict(measurements_response)[PRT_UE_RRC_MEASUREMENTS_RESPONSE]
+        measurements = measurements_response_dict["measurements"]
+
+        try:
+            rnti = measurements_response_dict["rnti"]
+            ue = self.vbsp.ues[rnti]
+        except KeyError:
+            LOG.error(" Unknown UE to VBSP (%s)", (self.vbsp_id))
+            return
+
+        ue.PCell_rsrp = measurements["PCell_rsrp"]
+        ue.PCell_rsrq = measurements["PCell_rsrq"]
+
+        if "meas_result_neigh_cells" in measurements:
+            meas_result_neigh_cells = measurements["meas_result_neigh_cells"]
+            for measurement_RAT in meas_result_neigh_cells:
+                for measurement in meas_result_neigh_cells[measurement_RAT]:
+                    ue.rrc_measurements[measurement["phys_cell_id"]] = {"measId": measurements["measId"],
+                                                                        "RAT_type": measurement_RAT,
+                                                                        "rsrp": measurement["meas_result"]["rsrp"],
+                                                                        "rsrq": measurement["meas_result"]["rsrq"]
+                                                                        }
+
+
 
     def _handle_hello(self, hello):
         """Handle an incoming HELLO message.
@@ -253,7 +312,7 @@ class VBSPConnection(object):
             LOG.error(" Hello from unknown VBSP (%s)", (self.vbsp_id))
             return
 
-        LOG.info("Hello from %s , port %s, VBSP %s", self.addr[0], self.addr[1], self.vbsp_id.to_str())
+        LOG.info(" Hello from %s , port %s, VBSP %s", self.addr[0], self.addr[1], self.vbsp_id.to_str())
 
         # If this is a new connection, then send enb status request or enb config request
         if not vbsp.connection:
@@ -261,13 +320,102 @@ class VBSPConnection(object):
             # attribute of the PNFDev object is set
             self.vbsp = vbsp
             vbsp.connection = self
-            vbsp.period = 5000000
-            # self.send_caps_request()
+            self.xid = hello.hello_msg.header.xid + 1
+            vbsp.period = 5000 # milliseconds
+            self.send_enb_config_request(self.enb_id)
 
         # Update VBSP params
         # vbsp.period = 5000000
         # wtp.last_seen = hello.seq
         vbsp.last_seen_ts = time.time()
+        # self.send_mac_stats_request()
+
+    def send_mac_stats_request(self, enb_id, params, xid):
+
+        stats_request = progran_pb2.progran_message()
+
+        self.create_header(xid, enb_id, header_pb2.PRPT_GET_ENB_CONFIG_REQUEST, stats_request.stats_request_msg.header)
+        stats_request.msg_dir = progran_pb2.INITIATING_MESSAGE
+
+        try:
+            stats_request_config = params["stats_request_config"]
+            stats_request_msg = stats_request.stats_request_msg
+            stats_request_msg.type = MAC_STATS_TYPE[stats_request_config["report_type"]]
+
+            if stats_request_msg.type == stats_messages_pb2.PRST_COMPLETE_STATS:
+
+                complete_stats = stats_request_msg.complete_stats_request
+                complete_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
+                complete_stats.sf = stats_request_config["periodicity"]
+
+                cc_report_flag = 0
+                ue_report_flag = 0
+
+                if stats_request_config["report_frequency"] != "off":
+                    for flag in stats_request_config["report_config"]["cell_report_type"]["cell_report_flags"]:
+                        cc_report_flag |= MAC_CELL_STATS_TYPES[flag]            
+
+                    for flag in stats_request_config["report_config"]["ue_report_type"]["ue_report_flags"]:
+                        ue_report_flag |= MAC_UE_STATS_TYPES[flag]
+
+                complete_stats.ue_report_flags = ue_report_flag
+                complete_stats.cell_report_flags = cc_report_flag
+
+            elif stats_request_msg.type == stats_messages_pb2.PRST_CELL_STATS:
+                cell_stats = stats_request_msg.cell_stats_request
+                cell_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
+                cell_stats.sf = stats_request_config["periodicity"]
+
+                cc_report_flag = 0
+
+                for flag in stats_request_config["report_config"]["cell_report_type"]["cell_report_flags"]:
+                    cc_report_flag |= MAC_CELL_STATS_TYPES[flag]
+
+                for cc in stats_request_config["report_config"]["cell_report_type"]["cc_id"]:
+                    cell_stats.cell.append(cc)
+
+                cell_stats.flags = cc_report_flag
+
+            elif stats_request_msg.type == stats_messages_pb2.PRST_UE_STATS:
+                # Periodic reporting not supported here yet
+                ue_stats = stats_request_msg.ue_stats_request
+                ue_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
+                ue_stats.sf = stats_request_config["periodicity"]
+
+                ue_report_flag = 0                
+
+                for flag in stats_request_config["report_config"]["ue_report_type"]["ue_report_flags"]:
+                    ue_report_flag |= MAC_UE_STATS_TYPES[flag]
+
+                for rnti in stats_request_config["report_config"]["ue_report_type"]["ue_rnti"]:
+                    ue_stats.rnti.append(rnti)
+
+                ue_stats.flags = ue_report_flag
+
+        except KeyError as ex:
+            return None
+        except ValueError as ex:
+            return None
+
+        LOG.info("Sending ENB mac stats request message to VBSP %s", self.vbsp.addr)
+        self.stream_send(stats_request)
+
+        return 0
+
+    def _handle_enb_config_reply(self, enb_config_reply):
+
+        vbsp = RUNTIME.vbsps[self.vbsp_id]
+        vbsp.enb_config = protobuf_to_dict(enb_config_reply)["enb_config_reply_msg"]
+
+    def send_enb_config_request(self, enb_id):
+
+        enb_config_request = progran_pb2.progran_message()
+
+        self.create_header(self.xid, enb_id, header_pb2.PRPT_GET_ENB_CONFIG_REQUEST, enb_config_request.enb_config_request_msg.header)
+        enb_config_request.msg_dir = progran_pb2.INITIATING_MESSAGE
+
+        LOG.info("Sending ENB config request message to VBSP %s", self.vbsp.addr)
+        self.stream_send(enb_config_request)
 
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
@@ -284,6 +432,7 @@ class VBSPConnection(object):
         # reset state
         # self.vbsp.last_seen = 0
         self.vbsp.connection = None
+        TIMER_IDS = []
         # self.vbsp.ports = {}
         # self.vbsp.supports = ResourcePool()
 
