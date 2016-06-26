@@ -90,7 +90,7 @@ class EmpowerRuntime(object):
         self.lvaps = {}
         self.wtps = {}
         self.cpps = {}
-        self.vbsps = {}
+        self.vbsps = {} # Virtual Base station Points information
         self.feeds = {}
         self.allowed = {}
         self.denied = {}

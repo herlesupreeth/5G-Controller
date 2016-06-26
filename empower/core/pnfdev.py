@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015, Roberto Riggio
+# Copyright (c) 2015, Roberto Riggio, Supreeth Herle
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,8 @@ class BasePNFDev(object):
         self.downlink_bytes = 0
         self.downlink_bit_rate = 0
         self.ports = {}
+        self.enb_config = {}
+        self.ues = {}
 
     @property
     def connection(self):
@@ -104,7 +106,8 @@ class BasePNFDev(object):
                 'downlink_bytes': self.downlink_bytes,
                 'downlink_bit_rate': self.downlink_bit_rate,
                 'ports': self.ports,
-                'connection': self.connection}
+                'connection': self.connection
+                }
 
     @property
     def seq(self):
