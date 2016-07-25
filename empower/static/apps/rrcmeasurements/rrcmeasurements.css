@@ -1,0 +1,27 @@
+
+#priCellMeas {
+    margin:auto;
+    margin-top: 30px;
+    margin-bottom: 50px;
+    box-shadow:none;
+    -webkit-box-shadow:none;
+    background-image: -webkit-gradient(linear, left top, right top, from(rgba(230,230,230,0.8)),to(rgba(230,230,230,0.8)), color-stop(.2,#fff) );
+}
+
+#vbspUESelect {
+    margin:auto;
+}
+
+#divLabel {
+    padding-top: 7px;
+    text-align: center;
+}
+
+#neighCellsMeas {
+    margin:auto;
+    margin-top: 30px;
+    margin-bottom: 50px;
+    box-shadow:none;
+    -webkit-box-shadow:none;
+    background-image: -webkit-gradient(linear, left top, right top, from(rgba(230,230,230,0.8)),to(rgba(230,230,230,0.8)), color-stop(.2,#fff) );
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>RRC Measurements of Serving and Neighbor Cells</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="../../../static/js/jquery-2.1.4.min.js"></script>
+    <link href="../../../static/css/c3.css" rel="stylesheet" type="text/css">
+    <link href="../../../static/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <script src="../../../static/js/d3.js" type="text/javascript"></script>
+    <script src="../../../static/js/c3.js" type="text/javascript"></script>
+    <script src="../../../static/js/bootstrap.js" type="text/javascript"></script>
+    <link href='https://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="../../../static/css/empower.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/apps/rrcmeasurements/rrcmeasurements.css" />
+    <script type="text/javascript" src="../../../static/js/empower.ui.lib.js"></script>
+    <script type="text/javascript" src="../../../static/apps/rrcmeasurements/rrcmeasurements.lib.js" /></script>
+    <script type="text/javascript">
+      var tenant_id="{{tenant_id}}"
+      // loadVBSPsSelectBox(tenant_id);
+      // function initialize() {
+      //   // initTab()
+      // }
+    </script>
+  </head>
+
+  <body>
+    <div class="toolBox">
+      <div class="jumbotron text-center">
+        <h1>RRC Measurements</h1>
+        <p>Please select the VBSP and corresponding UE to view the measurements!</p>
+      </div>
+      <div class="container" id="rrcMeasContainer">
+        <div class="row" id="vbspUESelect">
+          <div class="col-sm-2" id="divLabel">
+            <label for="vbspSelect">Select VBSP:</label>
+          </div>
+          <div class="col-sm-3">          
+            <select class="form-control" data-width="auto" id="vbspSelect">
+              <option selected value> --- Select an option --- </option>
+            </select>
+          </div>
+          <div class="hidden" id="UESelectMenuDiv">
+            <div class="col-sm-2" id="divLabel">
+              <label for="UESelect">Select the UE:</label>
+            </div>
+            <div class="col-sm-3">
+              <select class="form-control" data-width="auto" id="UESelect">
+                <option selected value> --- Select an option --- </option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="row hidden" id="priCellMeas">
+          <div class="row" id="divLabel">
+            <h4>Serving Cell RSRP and RSRQ Measurements</h4>
+          </div>
+          <div class="row">
+            <div class="col-sm-6">
+              <div id="priRSRPchart"></div>
+            </div>
+            <div class="col-sm-6">
+              <div id="priRSRQchart"></div>
+            </div>
+          </div>
+        </div>
+        <div class="row hidden" id="neighCellsSelect">
+          <div class="col-sm-2" id="divLabel">
+            <label for="CellIDSelect">Select the Cell ID:</label>
+          </div>
+          <div class="col-sm-3">
+            <select class="form-control" data-width="auto" id="CellIDSelect">
+              <option selected value> --- Select an option --- </option>
+            </select>
+          </div>
+        </div>
+        <div class="row hidden" id="neighCellsMeas">
+          <div class="row" id="divLabel">
+            <h4>Neighboring Cell RSRP and RSRQ Measurements</h4>
+          </div>
+          <div class="row">
+            <div class="col-sm-6">
+              <div id="neighRSRPchart"></div>
+            </div>
+            <div class="col-sm-6">
+              <div id="neighRSRQchart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
