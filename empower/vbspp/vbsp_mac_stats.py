@@ -59,7 +59,8 @@ class VBSPMACStats(Module):
     _mac_stats_reply = None
 
     def __eq__(self, other):
-
+        # The "False" value is used due to fact that multiple similar 
+        # mac stats request can exist
         return super().__eq__(other) and False
 
     @property
