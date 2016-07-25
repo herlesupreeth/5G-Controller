@@ -49,6 +49,7 @@ from empower.vbspp import MAC_STATS_REPORT_FREQ
 from empower.vbspp import MAC_CELL_STATS_TYPES
 from empower.vbspp import MAC_UE_STATS_TYPES
 from empower.vbspp import TIMER_IDS
+from empower.vbspp import REPORT_INTERVAL
 from protobuf_to_dict import protobuf_to_dict
 from empower.core.ue import UE
 from empower.main import RUNTIME
@@ -252,7 +253,7 @@ class VBSPConnection(object):
         ue_state_dict = protobuf_to_dict(ue_state)[PRT_UE_STATE_CHANGE]
         rnti = ue_state_dict["config"]["rnti"]
 
-        if ue_state_dict["type"] == config_common_pb2.PRUESC_ACTIVATED:
+        if ue_state_dict["type"] != config_common_pb2.PRUESC_DEACTIVATED:
             if "capabilities" not in ue_state_dict["config"]:
                 capabilities = {}
             else:
@@ -328,7 +329,6 @@ class VBSPConnection(object):
         # vbsp.period = 5000000
         # wtp.last_seen = hello.seq
         vbsp.last_seen_ts = time.time()
-        # self.send_mac_stats_request()
 
     def send_mac_stats_request(self, enb_id, params, xid):
 
@@ -337,68 +337,85 @@ class VBSPConnection(object):
         self.create_header(xid, enb_id, header_pb2.PRPT_GET_ENB_CONFIG_REQUEST, stats_request.stats_request_msg.header)
         stats_request.msg_dir = progran_pb2.INITIATING_MESSAGE
 
-        try:
-            stats_request_config = params["stats_request_config"]
-            stats_request_msg = stats_request.stats_request_msg
-            stats_request_msg.type = MAC_STATS_TYPE[stats_request_config["report_type"]]
+        stats_request_config = params["stats_request_config"]
+        stats_request_msg = stats_request.stats_request_msg
+        stats_request_msg.type = MAC_STATS_TYPE[stats_request_config["report_type"]]
 
-            if stats_request_msg.type == stats_messages_pb2.PRST_COMPLETE_STATS:
+        if stats_request_msg.type == stats_messages_pb2.PRST_COMPLETE_STATS:
 
-                complete_stats = stats_request_msg.complete_stats_request
-                complete_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
-                complete_stats.sf = stats_request_config["periodicity"]
+            complete_stats = stats_request_msg.complete_stats_request
+            complete_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
+            complete_stats.sf = stats_request_config["periodicity"]
 
-                cc_report_flag = 0
-                ue_report_flag = 0
+            cc_report_flag = 0
+            ue_report_flag = 0
 
-                if stats_request_config["report_frequency"] != "off":
-                    for flag in stats_request_config["report_config"]["cell_report_type"]["cell_report_flags"]:
-                        cc_report_flag |= MAC_CELL_STATS_TYPES[flag]            
-
-                    for flag in stats_request_config["report_config"]["ue_report_type"]["ue_report_flags"]:
-                        ue_report_flag |= MAC_UE_STATS_TYPES[flag]
-
-                complete_stats.ue_report_flags = ue_report_flag
-                complete_stats.cell_report_flags = cc_report_flag
-
-            elif stats_request_msg.type == stats_messages_pb2.PRST_CELL_STATS:
-                cell_stats = stats_request_msg.cell_stats_request
-                cell_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
-                cell_stats.sf = stats_request_config["periodicity"]
-
-                cc_report_flag = 0
-
+            if stats_request_config["report_frequency"] != "off":
                 for flag in stats_request_config["report_config"]["cell_report_type"]["cell_report_flags"]:
-                    cc_report_flag |= MAC_CELL_STATS_TYPES[flag]
-
-                for cc in stats_request_config["report_config"]["cell_report_type"]["cc_id"]:
-                    cell_stats.cell.append(cc)
-
-                cell_stats.flags = cc_report_flag
-
-            elif stats_request_msg.type == stats_messages_pb2.PRST_UE_STATS:
-                # Periodic reporting not supported here yet
-                ue_stats = stats_request_msg.ue_stats_request
-                ue_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
-                ue_stats.sf = stats_request_config["periodicity"]
-
-                ue_report_flag = 0                
+                    cc_report_flag |= MAC_CELL_STATS_TYPES[flag]            
 
                 for flag in stats_request_config["report_config"]["ue_report_type"]["ue_report_flags"]:
                     ue_report_flag |= MAC_UE_STATS_TYPES[flag]
 
-                for rnti in stats_request_config["report_config"]["ue_report_type"]["ue_rnti"]:
-                    ue_stats.rnti.append(rnti)
+            complete_stats.ue_report_flags = ue_report_flag
+            complete_stats.cell_report_flags = cc_report_flag
 
-                ue_stats.flags = ue_report_flag
+        elif stats_request_msg.type == stats_messages_pb2.PRST_CELL_STATS:
+            cell_stats = stats_request_msg.cell_stats_request
+            cell_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
+            cell_stats.sf = stats_request_config["periodicity"]
 
-        except KeyError as ex:
-            return None
-        except ValueError as ex:
-            return None
+            cc_report_flag = 0
+
+            for flag in stats_request_config["report_config"]["cell_report_type"]["cell_report_flags"]:
+                cc_report_flag |= MAC_CELL_STATS_TYPES[flag]
+
+            for cc in stats_request_config["report_config"]["cell_report_type"]["cc_id"]:
+                cell_stats.cell.append(cc)
+
+            cell_stats.flags = cc_report_flag
+
+        elif stats_request_msg.type == stats_messages_pb2.PRST_UE_STATS:
+            # Periodic reporting not supported here yet
+            ue_stats = stats_request_msg.ue_stats_request
+            ue_stats.report_frequency = MAC_STATS_REPORT_FREQ[stats_request_config["report_frequency"]]
+            ue_stats.sf = stats_request_config["periodicity"]
+
+            ue_report_flag = 0                
+
+            for flag in stats_request_config["report_config"]["ue_report_type"]["ue_report_flags"]:
+                ue_report_flag |= MAC_UE_STATS_TYPES[flag]
+
+            for rnti in stats_request_config["report_config"]["ue_report_type"]["ue_rnti"]:
+                ue_stats.rnti.append(rnti)
+
+            ue_stats.flags = ue_report_flag
 
         LOG.info("Sending ENB mac stats request message to VBSP %s", self.vbsp.addr)
         self.stream_send(stats_request)
+
+        return 0
+
+    def send_rrc_meas_reconfig_request(self, params, xid):
+
+        rrc_meas_reconfig_req = progran_pb2.progran_message()
+        meas_config_msg = rrc_meas_reconfig_req.ue_rrc_measurements_config_msg
+        meas_config_msg.rnti = xid # rnti value is passed to xid
+        config = meas_config_msg.config
+        
+        self.create_header(xid, self.enb_id, header_pb2.PRPT_SEND_RRC_MEASUREMENTS_CONFIG, meas_config_msg.header)
+        rrc_meas_reconfig_req.msg_dir = progran_pb2.INITIATING_MESSAGE
+
+        meas_config = params["rrc_measurements_request"]
+
+        if "reportInterval" in meas_config:
+            config.report_interval = REPORT_INTERVAL[meas_config["reportInterval"]]
+
+        if "reporting_carrier_frequency" in meas_config:
+            config.report_carrier_freq = int(meas_config["reporting_carrier_frequency"])
+
+        LOG.info("Sending RRC Measurement reconfiguration request message to VBSP %s", self.vbsp.addr)
+        self.stream_send(rrc_meas_reconfig_req)
 
         return 0
 

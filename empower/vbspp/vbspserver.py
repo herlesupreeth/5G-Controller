@@ -33,6 +33,7 @@ from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
 from empower.vbspp.vbspmacstatshandler import VBSPMACStatsHandler
+from empower.vbspp.uerrcmeasurementshandler import UERRCMeasurementsHandler
 from empower.vbspp.uehandler import UEHandler
 from empower.persistence.persistence import TblVBSP
 from empower.core.vbsp import VBSP
@@ -110,7 +111,8 @@ class VBSPServer(PNFPServer, TCPServer):
         self.ues = {}
         self.connection = None
 
-        self.listen(self.port, "127.0.0.1")
+        # self.listen(self.port, "127.0.0.1")
+        self.listen(self.port)
 
     def handle_stream(self, stream, address):
         LOG.info('Incoming connection from %r and %r', address, stream)
@@ -127,6 +129,7 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(VBSPHandler, server)
     rest_server.add_handler_class(VBSPMACStatsHandler, server)
     rest_server.add_handler_class(UEHandler, server)
+    rest_server.add_handler_class(UERRCMeasurementsHandler, server)
 
     LOG.info("VBSP Server available at %u", server.port)
     return server
