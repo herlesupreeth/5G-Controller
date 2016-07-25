@@ -56,6 +56,23 @@ MAX_MODULE_ID = 4294967295 # Max value of uint32
 
 MAX_NUM_CCs  = 1
 
+# Mapped as per the ReportInterval.h in agent
+REPORT_INTERVAL = {
+    "120ms": 0,
+    "240ms": 1,
+    "480ms": 2,
+    "640ms": 3,
+    "1024ms": 4,
+    "2048ms": 5,
+    "5120ms": 6,
+    "10240ms": 7,
+    "1min": 8,
+    "6min": 9,
+    "12min": 10,
+    "30min": 11,
+    "60min": 12
+}
+
 class AgentIDT(IntEnum):
 
     CTRL_AGENT_DEFAULT = 0
