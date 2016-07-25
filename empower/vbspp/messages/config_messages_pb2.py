@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='config_messages.proto',
   package='protocol',
   syntax='proto2',
-  serialized_pb=_b('\n\x15\x63onfig_messages.proto\x12\x08protocol\x1a\x13\x63onfig_common.proto\"\x9e\x07\n\x0fprp_cell_config\x12\x13\n\x0bphy_cell_id\x18\x01 \x01(\r\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\x12\x1c\n\x14pusch_hopping_offset\x18\x03 \x01(\r\x12\x14\n\x0chopping_mode\x18\x04 \x01(\r\x12\x0c\n\x04n_sb\x18\x05 \x01(\r\x12\x16\n\x0ephich_resource\x18\x06 \x01(\r\x12\x16\n\x0ephich_duration\x18\x07 \x01(\r\x12\x1e\n\x16init_nr_PDCCH_OFDM_sym\x18\x08 \x01(\r\x12*\n\tsi_config\x18\t \x01(\x0b\x32\x17.protocol.prp_si_config\x12\x14\n\x0c\x64l_bandwidth\x18\n \x01(\r\x12\x14\n\x0cul_bandwidth\x18\x0b \x01(\r\x12\x1f\n\x17ul_cyclic_prefix_length\x18\r \x01(\r\x12\x1f\n\x17\x64l_cyclic_prefix_length\x18\x0e \x01(\r\x12\x1b\n\x13\x61ntenna_ports_count\x18\x0f \x01(\r\x12\x13\n\x0b\x64uplex_mode\x18\x10 \x01(\r\x12\x1b\n\x13subframe_assignment\x18\x11 \x01(\r\x12!\n\x19special_subframe_patterns\x18\x12 \x01(\r\x12&\n\x1embsfn_subframe_config_rfperiod\x18\x13 \x03(\r\x12&\n\x1embsfn_subframe_config_rfoffset\x18\x14 \x03(\r\x12%\n\x1dmbsfn_subframe_config_sfalloc\x18\x15 \x03(\r\x12\x1a\n\x12prach_config_index\x18\x16 \x01(\r\x12\x19\n\x11prach_freq_offset\x18\x17 \x01(\r\x12\x1f\n\x17ra_response_window_size\x18\x18 \x01(\r\x12\'\n\x1fmac_contention_resolution_timer\x18\x19 \x01(\r\x12\x17\n\x0fmax_HARQ_Msg3Tx\x18\x1a \x01(\r\x12\x12\n\nn1PUCCH_AN\x18\x1b \x01(\r\x12\x18\n\x10\x64\x65ltaPUCCH_shift\x18\x1c \x01(\r\x12\x0f\n\x07nRB_cqi\x18\x1d \x01(\r\x12\x1b\n\x13srs_subframe_config\x18\x1e \x01(\r\x12\x15\n\rsrs_bw_config\x18\x1f \x01(\r\x12\x16\n\x0esrs_mac_up_pts\x18  \x01(\r\x12\x14\n\x0c\x65nable_64QAM\x18! \x01(\r\x12\x15\n\rcarrier_index\x18\" \x01(\r\"\xe9\x07\n\rprp_ue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12,\n\ndrx_config\x18\x02 \x01(\x0b\x32\x18.protocol.prp_drx_config\x12\x1c\n\x14time_alignment_timer\x18\x03 \x01(\r\x12\x1f\n\x17meas_gap_config_pattern\x18\x04 \x01(\r\x12!\n\x19meas_gap_config_sf_offset\x18\x05 \x01(\r\x12,\n\nsps_config\x18\x06 \x01(\x0b\x32\x18.protocol.prp_sps_config\x12*\n\tsr_config\x18\x07 \x01(\x0b\x32\x17.protocol.prp_sr_config\x12,\n\ncqi_config\x18\x08 \x01(\x0b\x32\x18.protocol.prp_cqi_config\x12\x19\n\x11transmission_mode\x18\t \x01(\r\x12$\n\x1cue_aggregated_max_bitrate_UL\x18\n \x01(\x04\x12$\n\x1cue_aggregated_max_bitrate_DL\x18\x0b \x01(\x04\x12\x33\n\x0c\x63\x61pabilities\x18\x0c \x01(\x0b\x32\x1d.protocol.prp_ue_capabilities\x12\x1f\n\x17ue_transmission_antenna\x18\r \x01(\r\x12\x14\n\x0ctti_bundling\x18\x0e \x01(\r\x12\x13\n\x0bmax_HARQ_tx\x18\x0f \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_ACK_index\x18\x10 \x01(\r\x12\x1c\n\x14\x62\x65ta_offset_RI_index\x18\x11 \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_CQI_index\x18\x12 \x01(\r\x12#\n\x1b\x61\x63k_nack_simultaneous_trans\x18\x13 \x01(\r\x12!\n\x19simultaneous_ack_nack_cqi\x18\x14 \x01(\r\x12\x1e\n\x16\x61periodic_cqi_rep_mode\x18\x15 \x01(\r\x12\x1d\n\x15tdd_ack_nack_feedback\x18\x16 \x01(\r\x12\"\n\x1a\x61\x63k_nack_repetition_factor\x18\x17 \x01(\r\x12\x19\n\x11\x65xtended_bsr_size\x18\x18 \x01(\r\x12\x12\n\nca_support\x18\x19 \x01(\r\x12#\n\x1b\x63ross_carrier_sched_support\x18\x1a \x01(\r\x12\x1b\n\x13pcell_carrier_index\x18\x1b \x01(\r\x12\x30\n\x0cscell_config\x18\x1c \x03(\x0b\x32\x1a.protocol.prp_scell_config\x12 \n\x18scell_deactivation_timer\x18\x1d \x01(\r\"L\n\x10prp_lc_ue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12*\n\tlc_config\x18\x02 \x03(\x0b\x32\x17.protocol.prp_lc_config')
+  serialized_pb=_b('\n\x15\x63onfig_messages.proto\x12\x08protocol\x1a\x13\x63onfig_common.proto\"\x9e\x07\n\x0fprp_cell_config\x12\x13\n\x0bphy_cell_id\x18\x01 \x01(\r\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\x12\x1c\n\x14pusch_hopping_offset\x18\x03 \x01(\r\x12\x14\n\x0chopping_mode\x18\x04 \x01(\r\x12\x0c\n\x04n_sb\x18\x05 \x01(\r\x12\x16\n\x0ephich_resource\x18\x06 \x01(\r\x12\x16\n\x0ephich_duration\x18\x07 \x01(\r\x12\x1e\n\x16init_nr_PDCCH_OFDM_sym\x18\x08 \x01(\r\x12*\n\tsi_config\x18\t \x01(\x0b\x32\x17.protocol.prp_si_config\x12\x14\n\x0c\x64l_bandwidth\x18\n \x01(\r\x12\x14\n\x0cul_bandwidth\x18\x0b \x01(\r\x12\x1f\n\x17ul_cyclic_prefix_length\x18\r \x01(\r\x12\x1f\n\x17\x64l_cyclic_prefix_length\x18\x0e \x01(\r\x12\x1b\n\x13\x61ntenna_ports_count\x18\x0f \x01(\r\x12\x13\n\x0b\x64uplex_mode\x18\x10 \x01(\r\x12\x1b\n\x13subframe_assignment\x18\x11 \x01(\r\x12!\n\x19special_subframe_patterns\x18\x12 \x01(\r\x12&\n\x1embsfn_subframe_config_rfperiod\x18\x13 \x03(\r\x12&\n\x1embsfn_subframe_config_rfoffset\x18\x14 \x03(\r\x12%\n\x1dmbsfn_subframe_config_sfalloc\x18\x15 \x03(\r\x12\x1a\n\x12prach_config_index\x18\x16 \x01(\r\x12\x19\n\x11prach_freq_offset\x18\x17 \x01(\r\x12\x1f\n\x17ra_response_window_size\x18\x18 \x01(\r\x12\'\n\x1fmac_contention_resolution_timer\x18\x19 \x01(\r\x12\x17\n\x0fmax_HARQ_Msg3Tx\x18\x1a \x01(\r\x12\x12\n\nn1PUCCH_AN\x18\x1b \x01(\r\x12\x18\n\x10\x64\x65ltaPUCCH_shift\x18\x1c \x01(\r\x12\x0f\n\x07nRB_cqi\x18\x1d \x01(\r\x12\x1b\n\x13srs_subframe_config\x18\x1e \x01(\r\x12\x15\n\rsrs_bw_config\x18\x1f \x01(\r\x12\x16\n\x0esrs_mac_up_pts\x18  \x01(\r\x12\x14\n\x0c\x65nable_64QAM\x18! \x01(\r\x12\x15\n\rcarrier_index\x18\" \x01(\r\"S\n\x1bprp_rrc_measurements_config\x12\x17\n\x0freport_interval\x18\x01 \x01(\r\x12\x1b\n\x13report_carrier_freq\x18\x02 \x01(\r\"\xe9\x07\n\rprp_ue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12,\n\ndrx_config\x18\x02 \x01(\x0b\x32\x18.protocol.prp_drx_config\x12\x1c\n\x14time_alignment_timer\x18\x03 \x01(\r\x12\x1f\n\x17meas_gap_config_pattern\x18\x04 \x01(\r\x12!\n\x19meas_gap_config_sf_offset\x18\x05 \x01(\r\x12,\n\nsps_config\x18\x06 \x01(\x0b\x32\x18.protocol.prp_sps_config\x12*\n\tsr_config\x18\x07 \x01(\x0b\x32\x17.protocol.prp_sr_config\x12,\n\ncqi_config\x18\x08 \x01(\x0b\x32\x18.protocol.prp_cqi_config\x12\x19\n\x11transmission_mode\x18\t \x01(\r\x12$\n\x1cue_aggregated_max_bitrate_UL\x18\n \x01(\x04\x12$\n\x1cue_aggregated_max_bitrate_DL\x18\x0b \x01(\x04\x12\x33\n\x0c\x63\x61pabilities\x18\x0c \x01(\x0b\x32\x1d.protocol.prp_ue_capabilities\x12\x1f\n\x17ue_transmission_antenna\x18\r \x01(\r\x12\x14\n\x0ctti_bundling\x18\x0e \x01(\r\x12\x13\n\x0bmax_HARQ_tx\x18\x0f \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_ACK_index\x18\x10 \x01(\r\x12\x1c\n\x14\x62\x65ta_offset_RI_index\x18\x11 \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_CQI_index\x18\x12 \x01(\r\x12#\n\x1b\x61\x63k_nack_simultaneous_trans\x18\x13 \x01(\r\x12!\n\x19simultaneous_ack_nack_cqi\x18\x14 \x01(\r\x12\x1e\n\x16\x61periodic_cqi_rep_mode\x18\x15 \x01(\r\x12\x1d\n\x15tdd_ack_nack_feedback\x18\x16 \x01(\r\x12\"\n\x1a\x61\x63k_nack_repetition_factor\x18\x17 \x01(\r\x12\x19\n\x11\x65xtended_bsr_size\x18\x18 \x01(\r\x12\x12\n\nca_support\x18\x19 \x01(\r\x12#\n\x1b\x63ross_carrier_sched_support\x18\x1a \x01(\r\x12\x1b\n\x13pcell_carrier_index\x18\x1b \x01(\r\x12\x30\n\x0cscell_config\x18\x1c \x03(\x0b\x32\x1a.protocol.prp_scell_config\x12 \n\x18scell_deactivation_timer\x18\x1d \x01(\r\"L\n\x10prp_lc_ue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12*\n\tlc_config\x18\x02 \x03(\x0b\x32\x17.protocol.prp_lc_config')
   ,
   dependencies=[config__common__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -283,6 +283,44 @@ _PRP_CELL_CONFIG = _descriptor.Descriptor(
 )
 
 
+_PRP_RRC_MEASUREMENTS_CONFIG = _descriptor.Descriptor(
+  name='prp_rrc_measurements_config',
+  full_name='protocol.prp_rrc_measurements_config',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='report_interval', full_name='protocol.prp_rrc_measurements_config.report_interval', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='report_carrier_freq', full_name='protocol.prp_rrc_measurements_config.report_carrier_freq', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=985,
+  serialized_end=1068,
+)
+
+
 _PRP_UE_CONFIG = _descriptor.Descriptor(
   name='prp_ue_config',
   full_name='protocol.prp_ue_config',
@@ -505,8 +543,8 @@ _PRP_UE_CONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=986,
-  serialized_end=1987,
+  serialized_start=1071,
+  serialized_end=2072,
 )
 
 
@@ -543,8 +581,8 @@ _PRP_LC_UE_CONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1989,
-  serialized_end=2065,
+  serialized_start=2074,
+  serialized_end=2150,
 )
 
 _PRP_CELL_CONFIG.fields_by_name['si_config'].message_type = config__common__pb2._PRP_SI_CONFIG
@@ -556,6 +594,7 @@ _PRP_UE_CONFIG.fields_by_name['capabilities'].message_type = config__common__pb2
 _PRP_UE_CONFIG.fields_by_name['scell_config'].message_type = config__common__pb2._PRP_SCELL_CONFIG
 _PRP_LC_UE_CONFIG.fields_by_name['lc_config'].message_type = config__common__pb2._PRP_LC_CONFIG
 DESCRIPTOR.message_types_by_name['prp_cell_config'] = _PRP_CELL_CONFIG
+DESCRIPTOR.message_types_by_name['prp_rrc_measurements_config'] = _PRP_RRC_MEASUREMENTS_CONFIG
 DESCRIPTOR.message_types_by_name['prp_ue_config'] = _PRP_UE_CONFIG
 DESCRIPTOR.message_types_by_name['prp_lc_ue_config'] = _PRP_LC_UE_CONFIG
 
@@ -565,6 +604,13 @@ prp_cell_config = _reflection.GeneratedProtocolMessageType('prp_cell_config', (_
   # @@protoc_insertion_point(class_scope:protocol.prp_cell_config)
   ))
 _sym_db.RegisterMessage(prp_cell_config)
+
+prp_rrc_measurements_config = _reflection.GeneratedProtocolMessageType('prp_rrc_measurements_config', (_message.Message,), dict(
+  DESCRIPTOR = _PRP_RRC_MEASUREMENTS_CONFIG,
+  __module__ = 'config_messages_pb2'
+  # @@protoc_insertion_point(class_scope:protocol.prp_rrc_measurements_config)
+  ))
+_sym_db.RegisterMessage(prp_rrc_measurements_config)
 
 prp_ue_config = _reflection.GeneratedProtocolMessageType('prp_ue_config', (_message.Message,), dict(
   DESCRIPTOR = _PRP_UE_CONFIG,
