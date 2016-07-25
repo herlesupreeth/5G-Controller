@@ -43,7 +43,7 @@ class UE(object):
         self.vbsp = vbsp
         self.config = config
         self.capabilities = capabilities
-        self.rrc_measurements_config = {}
+        self.ue_config = config
         self.rrc_measurements = {}
         self.PCell_rsrp = None
         self.PCell_rsrq = None
@@ -55,7 +55,9 @@ class UE(object):
                 'vbsp': self.vbsp.addr,
                 'ue_id': self.ue_id,
                 'capabilities': self.capabilities,
-                'rrc_measurements_config': self.rrc_measurements_config
+                'ue_config': self.ue_config,
+                'primary_cell_rsrp': self.PCell_rsrp,
+                'primary_cell_rsrq': self.PCell_rsrq
                 }
 
     def convert_hex_rnti_to_ether_address(self, rnti):
