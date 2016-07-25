@@ -33,11 +33,7 @@ import uuid
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.main import RUNTIME
-from empower.vbspp import MAX_NUM_CCs
-from empower.vbspp import MAC_STATS_TYPE
-from empower.vbspp import MAC_STATS_REPORT_FREQ
-from empower.vbspp import MAC_CELL_STATS_TYPES
-from empower.vbspp import MAC_UE_STATS_TYPES
+from empower.vbspp import REPORT_INTERVAL
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 
 import empower.logger
@@ -47,17 +43,18 @@ LOG = empower.logger.get_logger()
 class UERRCMeasurementsHandler(EmpowerAPIHandlerAdminUsers):
     """UERRCMeasurements handler. Used to view and manipulate UE RRC Measurements in tenants."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/([a-zA-Z0-9]*)/ue_rrc_measurements/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/vbsps/([a-zA-Z0-9:]*)/ues/([a-zA-Z0-9]*)/ue_rrc_measurements/?"]
 
     def post(self, *args, **kwargs):
-        """ Get the MAC stats as per the given request for a specified VBSP.
+        """ Change the RRC Measurements configuration for a specified UE in a VBSP.
 
         Args:
             tenant_id: the tenant identifier
+            vbsp_id: the vbsp identifier
             rnti: the radio network temporary identifier
 
         Example URLs:
-            GET /api/v1/tenants/daa2b515-8aed-4e6b-b171-2ff4dd12b768/ues/bb96/ue_rrc_measurements
+            GET /api/v1/tenants/daa2b515-8aed-4e6b-b171-2ff4dd12b768/vbsps/11:22:33:44:55:66/ues/bb96/ue_rrc_measurements
 
         data: '{
                     "version" : "1.0",
@@ -70,7 +67,7 @@ class UERRCMeasurementsHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) < 2 or len(args) > 2:
+            if len(args) < 3 or len(args) > 3:
                 raise ValueError("Invalid URL")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -84,82 +81,79 @@ class UERRCMeasurementsHandler(EmpowerAPIHandlerAdminUsers):
             if "reportInterval" not in request["rrc_measurements_request"] or "reporting_carrier_frequency" not in request["rrc_measurements_request"]:
                 raise ValueError("missing request parameters element")
 
+            if "reportInterval" in request["rrc_measurements_request"] and request["rrc_measurements_request"]["reportInterval"] not in REPORT_INTERVAL:
+                raise ValueError("Incorrect reportInterval parameters")
+
+            if "reporting_carrier_frequency" in request["rrc_measurements_request"]:
+                # crude check for integer value given for EARFCN
+                int(request["rrc_measurements_request"]["reporting_carrier_frequency"])
+
             vbsp = None
-            # till here
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
             vbsp = tenant.vbsps[EtherAddress(args[1])]
+            vbsp_connection = vbsp.connection
+            ue_rnti = int(args[2])
 
-            if request["stats_request_config"]["report_frequency"] != "off":
-                if "report_config" not in request["stats_request_config"]:
-                    raise ValueError("missing report_config element")
+            if len(vbsp.ues) == 0:
+                raise ValueError("No UEs are registered to vbsp")
 
-                if "ue_report_type" not in request["stats_request_config"]["report_config"]:
-                    raise ValueError("missing ue_report_type element")
+            if ue_rnti not in vbsp.ues:
+                raise ValueError("Incorrect rnti of UE")
 
-                if "cell_report_type" not in request["stats_request_config"]["report_config"]:
-                    raise ValueError("missing cell_report_type element")
-
-                if "ue_report_flags" not in request["stats_request_config"]["report_config"]["ue_report_type"] and \
-                    len(request["stats_request_config"]["report_config"]["ue_report_type"]["ue_report_flags"]) == 0:
-                    
-                    raise ValueError("missing ue_report_flags element")
-
-                for flag in request["stats_request_config"]["report_config"]["ue_report_type"]["ue_report_flags"]:
-                    if flag not in MAC_UE_STATS_TYPES:
-                        raise ValueError("Invalid ue_report_flag type")
-                        break
-
-                if "cell_report_flags" not in request["stats_request_config"]["report_config"]["cell_report_type"] and \
-                    len(request["stats_request_config"]["report_config"]["cell_report_type"]["cell_report_flags"]) == 0:
-                    
-                    raise ValueError("missing cell_report_flags element")
-
-                for flag in request["stats_request_config"]["report_config"]["cell_report_type"]["cell_report_flags"]:
-                    if flag not in MAC_CELL_STATS_TYPES:
-                        raise ValueError("Invalid cell_report_flag type")
-                        break
-
-                if request["stats_request_config"]["report_type"] == "cell":
-                    if len(request["stats_request_config"]["report_config"]["cell_report_type"]["cc_id"]) == 0:
-                        raise ValueError("missing cc_id element")
-
-                    for cc in request["stats_request_config"]["report_config"]["cell_report_type"]["cc_id"]:
-                        if cc >= MAX_NUM_CCs:
-                            raise ValueError("Invalid CC (Component Carrier) id value")
-                            break
- 
-                if request["stats_request_config"]["report_type"] == "ue":
-                    if len(vbsp.ues) == 0:
-                        raise ValueError("No UEs are registered to vbsp")
-
-                    if len(request["stats_request_config"]["report_config"]["ue_report_type"]["ue_rnti"]) == 0:
-                        raise ValueError("missing ue_rnti element")
-
-                    for rnti in request["stats_request_config"]["report_config"]["ue_report_type"]["ue_rnti"]:
-                        if rnti not in vbsp.ues:
-                            raise ValueError("Invalid rnti value of ue or ue does not exist")
-                            break
-
-            new_module = vbsp.vbsp_mac_stats(every= -1, callback=self.vbsp_mac_stats_callback, mac_stats_req=request, tenant_id=tenant_id)
-
-            if request["stats_request_config"]["report_frequency"] == "off":
-                new_module.worker.remove_module(new_module.module_id)
+            # ue_rnti is used a xid (transaction id)
+            # could you used in future to check whether the configuration was taken into effect or not
+            vbsp_connection.send_rrc_meas_reconfig_request(request, ue_rnti)
 
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
         
-        # self.set_status(200, None)
+        self.set_status(200, None)
 
-    def vbsp_mac_stats_callback(self, mac_stats_module):
-        """ New stats available. """
+    def get(self, *args, **kwargs):
+        """ Get RRC Measurements for a specified UE in a VBSP.
 
-        LOG.info("New MAC Stats received from %s" % mac_stats_module.vbsp)
+        Args:
+            tenant_id: the tenant identifier
+            vbsp_id: the vbsp identifier
+            rnti: the radio network temporary identifier
 
-        if mac_stats_module.mac_stats_req["stats_request_config"]["report_frequency"] == "once":
-            mac_stats_module.worker.remove_module(mac_stats_module.module_id)
+        Example URLs:
+            GET /api/v1/tenants/daa2b515-8aed-4e6b-b171-2ff4dd12b768/vbsps/11:22:33:44:55:66/ues/bb96/ue_rrc_measurements
+        """
+
+        try:
+
+            if len(args) < 3 or len(args) > 3:
+                raise ValueError("Invalid URL")
+
+            vbsp = None
+            tenant_id = uuid.UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+            vbsp = tenant.vbsps[EtherAddress(args[1])]
+            ue_rnti = int(args[2])
+
+            if len(vbsp.ues) == 0:
+                raise ValueError("No UEs are registered to vbsp")
+
+            if ue_rnti not in vbsp.ues:
+                raise ValueError("Incorrect rnti of UE")
+
+            ue = vbsp.ues[ue_rnti]
+            self.write_as_json({
+                'primary_cell_rsrp': ue.PCell_rsrp,
+                'primary_cell_rsrq': ue.PCell_rsrq,
+                'rrc_measurements': ue.rrc_measurements
+            })
+            self.set_status(200, None)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
 
 
 
